@@ -2,46 +2,79 @@ import {GraphQLServer} from 'graphql-yoga';
 
 const users=[
     {
-    id:"alok123",
+    id:"10",
     name:"alok",
     email:"aloksingh12@gmail.com",
     age:12,
+    
    },
    {
-    id:"prem123",
+    id:"11",
     name:"prem",
     email:"prem1@gmail.com",
-    age:8,  
+    age:8, 
+   
    },{
-   id:"avinash123",
+   id:"12",
    name:"avinash",
    email:"aloksingh1@gmail.com",
    
+   
    }
+];
+
+const posts=[
+    {
+        id:'1',
+        title:"math",
+        body:"About algebric express",
+        isPublished:true,
+        author:'10'
+
+    },
+    {
+        id:'2',
+        title:"discrete",
+        body:"different types of data",
+        isPublished:true,
+        author:'10'
+
+    },
+    {
+        id:'3',
+        title:"myth",
+        body:"myth of indian education system",
+        isPublished:true,
+        author:'12'
+
+    }
 ]
+
+
     //    add(num1:Float!,num2:Float!):Float!,
     //    marks:[Int!]!,
     //    addNumbers(numbers:[Float!]!):Float!
 const typeDefs=`
    type Query{
        greeting(name:String,title:String):String!
-       me:User!,
-       post:Post!,
-       user(query:String):[User!]! 
+       user(query:String):[User!]! ,
+       post(query:String):[Post!]!
 
     },
    type User{
        id:ID!,
        name:String!,
        email:String!,
-       age:Int
+       age:Int,
+       post:[Post!]!
    },
 
    type Post{
     id:ID!,
     title:String!,
     body:String!,
-    isPublished:Boolean!
+    isPublished:Boolean!,
+    author:User!
 
    }
 
@@ -56,29 +89,37 @@ const resolvers={
             }
 
         },
-        me(){
-          return{
-              id:"alok123",
-              name:"alok singh",
-              email:"aloksingh32@gmail.com",
-              age:20
-          }  
-        },
-        post(){
-           return {
-               id:'post123',
-               title:'graphql',
-               body:'this is basic graphql',
-               isPublished:true
-           }
+        // me(){
+        //   return{
+        //       id:"alok123",
+        //       name:"alok singh",
+        //       email:"aloksingh32@gmail.com",
+        //       age:20
+        //   }  
+        // },
+        // post(){
+        //    return {
+        //        id:'post123',
+        //        title:'graphql',
+        //        body:'this is basic graphql',
+        //        isPublished:true
+        //    }
 
-         },
+        //  },
          user(parent,args,context,info){
              if(!args.query){
                  return users
              }
              return users.filter((user)=>{
                 return user.name.toLowerCase().includes(args.query.toLowerCase())
+             })
+         },
+         post(parent,args,context,info){
+             if(!args.query){
+                 return posts;
+             }
+             return posts.filter((post)=>{
+                 return post.title.toLowerCase().includes(args.query.toLowerCase()) ||post.body.toLowerCase().includes(args.query.toLowerCase());
              })
          }
 
@@ -98,7 +139,24 @@ const resolvers={
         //     return args.numbers.reduce((accumulator,current)=>accumulator+current)
         // }
 
+    },
+    Post:{
+        author(parent,args,context,info){
+            console.log("data is ",parent);
+           return users.find((user)=>{
+                return user.id==parent.author
+           })
+        }
+    },
+    User:{
+        post(parent,args,context,info){
+            return posts.filter((post)=>{
+               return post.author==parent.id
+            })
+           
+        }
     }
+
 }
 
 const server=new GraphQLServer({
