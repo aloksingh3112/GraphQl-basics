@@ -3,8 +3,10 @@ import {GraphQLServer} from 'graphql-yoga';
 
 const typeDefs=`
    type Query{
+       greeting(name:String,title:String):String!
        me:User!,
-       post:Post!
+       post:Post!,
+       add(num1:Float!,num2:Float!):Float!
    },
    type User{
        id:ID!,
@@ -24,6 +26,14 @@ const typeDefs=`
 `
 const resolvers={
     Query:{
+        greeting(parent,args,context,info){
+            if(args.name && args.title){
+              return `hello ${args.name} and i m ${args.title}`
+            }else{
+                return 'hello'
+            }
+
+        },
         me(){
           return{
               id:"alok123",
@@ -40,6 +50,9 @@ const resolvers={
                isPublished:true
            }
 
+        },
+        add(parent,args,context,info){
+            return args.num1+args.num2
         }
 
     }
