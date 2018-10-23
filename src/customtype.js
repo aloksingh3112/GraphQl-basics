@@ -1,13 +1,35 @@
 import {GraphQLServer} from 'graphql-yoga';
 
-
+const users=[
+    {
+    id:"alok123",
+    name:"alok",
+    email:"aloksingh12@gmail.com",
+    age:12,
+   },
+   {
+    id:"prem123",
+    name:"prem",
+    email:"prem1@gmail.com",
+    age:8,  
+   },{
+   id:"avinash123",
+   name:"avinash",
+   email:"aloksingh1@gmail.com",
+   
+   }
+]
+    //    add(num1:Float!,num2:Float!):Float!,
+    //    marks:[Int!]!,
+    //    addNumbers(numbers:[Float!]!):Float!
 const typeDefs=`
    type Query{
        greeting(name:String,title:String):String!
        me:User!,
        post:Post!,
-       add(num1:Float!,num2:Float!):Float!
-   },
+       user(query:String):[User!]! 
+
+    },
    type User{
        id:ID!,
        name:String!,
@@ -50,10 +72,31 @@ const resolvers={
                isPublished:true
            }
 
-        },
-        add(parent,args,context,info){
-            return args.num1+args.num2
-        }
+         },
+         user(parent,args,context,info){
+             if(!args.query){
+                 return users
+             }
+             return users.filter((user)=>{
+                return user.name.toLowerCase().includes(args.query.toLowerCase())
+             })
+         }
+
+
+
+        // add(parent,args,context,info){
+        //     return args.num1+args.num2
+        // },
+        // marks(){
+        //     return [1,2,3,5];
+        // },
+        // addNumbers(parent,args,context,info){
+        //     if(args.numbers.length===0)
+        //     {
+        //         return 0;
+        //     }
+        //     return args.numbers.reduce((accumulator,current)=>accumulator+current)
+        // }
 
     }
 }
