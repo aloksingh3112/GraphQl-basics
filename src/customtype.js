@@ -48,17 +48,46 @@ const posts=[
         author:'12'
 
     }
+];
+
+const comments=[
+    {
+        id:'123',
+        text:'nice one',
+        author:'10',
+        post:'1'
+    },
+    {
+        id:'456',
+        text:'awesome one',
+        author:'11',
+        post:'2'
+    },
+    {
+        id:'789',
+        text:'smart one',
+        author:'12',
+        post:'3'
+    }
+    ,
+    {
+        id:'1011',
+        text:'gg one',
+        author:'11',
+        post:'2'
+    }
 ]
 
 
-    //    add(num1:Float!,num2:Float!):Float!,
-    //    marks:[Int!]!,
-    //    addNumbers(numbers:[Float!]!):Float!
+//    add(num1:Float!,num2:Float!):Float!,
+//    marks:[Int!]!,
+//    addNumbers(numbers:[Float!]!):Float!
 const typeDefs=`
    type Query{
        greeting(name:String,title:String):String!
        user(query:String):[User!]! ,
-       post(query:String):[Post!]!
+       post(query:String):[Post!]!,
+       comments:[Comment!]!
 
     },
    type User{
@@ -66,7 +95,8 @@ const typeDefs=`
        name:String!,
        email:String!,
        age:Int,
-       post:[Post!]!
+       post:[Post!]!,
+       comments:[Comment!]!
    },
 
    type Post{
@@ -74,8 +104,15 @@ const typeDefs=`
     title:String!,
     body:String!,
     isPublished:Boolean!,
-    author:User!
+    author:User!,
+    comments:[Comment!]!
 
+   },
+   type Comment{
+       id:ID!,
+       text:String!,
+       author:User!,
+       post:Post!
    }
 
 `
@@ -89,7 +126,30 @@ const resolvers={
             }
 
         },
-        // me(){
+        
+         user(parent,args,context,info){
+             if(!args.query){
+                 return users
+             }
+             return users.filter((user)=>{
+                return user.name.toLowerCase().includes(args.query.toLowerCase())
+             })
+         },
+         post(parent,args,context,info){
+             if(!args.query){
+                 return posts;
+             }
+             return posts.filter((post)=>{
+                 return post.title.toLowerCase().includes(args.query.toLowerCase()) ||post.body.toLowerCase().includes(args.query.toLowerCase());
+             })
+         },
+
+         comments(parent,arg,context,info){
+              return comments  
+         }
+
+
+         // me(){
         //   return{
         //       id:"alok123",
         //       name:"alok singh",
@@ -106,22 +166,6 @@ const resolvers={
         //    }
 
         //  },
-         user(parent,args,context,info){
-             if(!args.query){
-                 return users
-             }
-             return users.filter((user)=>{
-                return user.name.toLowerCase().includes(args.query.toLowerCase())
-             })
-         },
-         post(parent,args,context,info){
-             if(!args.query){
-                 return posts;
-             }
-             return posts.filter((post)=>{
-                 return post.title.toLowerCase().includes(args.query.toLowerCase()) ||post.body.toLowerCase().includes(args.query.toLowerCase());
-             })
-         }
 
 
 
@@ -142,9 +186,13 @@ const resolvers={
     },
     Post:{
         author(parent,args,context,info){
-            console.log("data is ",parent);
            return users.find((user)=>{
                 return user.id==parent.author
+           })
+        },
+        comments(parent,args,context,info){
+           return comments.filter(comment=>{
+               return comment.post==parent.id
            })
         }
     },
@@ -154,6 +202,24 @@ const resolvers={
                return post.author==parent.id
             })
            
+        },
+        comments(parent,args,context,info){
+            return comments.filter(comment=>{
+               return comment.author==parent.id
+            })
+        }
+    },
+
+    Comment:{
+        author(parent,args,context,info){
+           return users.find((user)=>{
+              return user.id==parent.author
+           })
+        },
+        post(parent,args,context,info){
+            return posts.find(post=>{
+                return post.id==parent.post
+            })
         }
     }
 
