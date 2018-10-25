@@ -93,7 +93,9 @@ const typeDefs=`
     },
 
     type Mutation{
-      createUser(name:String!,email:String!,age:Int!):User!
+      createUser(name:String!,email:String!,age:Int!):User!,
+      createPost(title:String!,body:String!,isPublished:Boolean!,author:ID!):Post!,
+      createComment(text:String!,author:ID!,post:ID!):Comment!
     },
 
 
@@ -209,6 +211,44 @@ const resolvers={
            users.push(user);
            return user;
         }
+        ,
+        createPost(parent,args,context,info){
+            console.log(args.author);
+            const userExis=users.some((user)=>user.id=args.author);
+             if(!userExis){
+                 throw new Error('user not existed')
+             }
+             const post={
+                 id:uuidv4(),
+                 title:args.title,
+                 body:args.body,
+                 isPublished:args.isPublished,
+                 author:args.author
+            }
+            posts.push(post);
+            return post;
+        },
+
+        createComment(parent,args,context,info){
+            const isUser=users.some((user)=>user.id==args.author);
+            if(!isUser){
+                throw new Error('user not existed')
+            }
+            const isPost=posts.some((post)=>post.id==args.post);
+            if(!isPost){
+                throw new Error("post does ot existed")
+            }
+            const comment={
+                id:uuidv4(),
+                text:args.text,
+                author:args.author,
+                post:args.post
+            }
+            comments.push(comment);
+            return comment;
+
+        }
+
     },
 
     Post:{
