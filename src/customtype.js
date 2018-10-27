@@ -1,7 +1,7 @@
 import {GraphQLServer} from 'graphql-yoga';
 import uuidv4 from 'uuid/v4';
 
-const users=[
+let users=[
     {
     id:"10",
     name:"alok",
@@ -24,7 +24,7 @@ const users=[
    }
 ];
 
-const posts=[
+let posts=[
     {
         id:'1',
         title:"math",
@@ -51,7 +51,7 @@ const posts=[
     }
 ];
 
-const comments=[
+let comments=[
     {
         id:'123',
         text:'nice one',
@@ -94,7 +94,9 @@ const typeDefs=`
 
     type Mutation{
       createUser(data: createUserInput):User!,
+      deleteUser(id:ID!):User!,
       createPost(data:createPostInput):Post!,
+      deletePost(id:ID!):Post!,
       createComment(data:createCommentInput):Comment!
     },
     input createUserInput{
@@ -230,6 +232,28 @@ const resolvers={
            users.push(user);
            return user;
         },
+
+        deleteUser(parent,args,context,info){
+          const userIndex=users.findIndex(user=>user.id===args.id);
+          if(userIndex==-1){
+              throw new Error("no user found");
+          }
+          const deletedUser=users.splice(userIndex,1);
+
+           posts=posts.filter((post)=>{
+               const match = post.author==args.id;
+               if(match){
+                    comments=comments.filter(comment=>{
+                         return comment.post!=post.id
+                    }) 
+               }
+               return  !match
+           })
+
+           comments=comments.filter((comment)=>comment.author!=args.id);
+
+           return deletedUser[0];
+        },
       
         
         createPost(parent,args,context,info){
@@ -244,6 +268,20 @@ const resolvers={
             }
             posts.push(post);
             return post;
+        },
+
+        deletePost(parent,args,context,info){
+         const findIndex=posts.findIndex(post=>post.id==args.id);
+         if(findIndex==-1){
+             throw new Error("no post exist")
+            }
+         const deletedPost=posts.splice(findIndex,1);
+
+         comments=comments.filter(comment=>comment.post!==args.id)
+         return deletedPost[0];
+
+
+
         },
 
         createComment(parent,args,context,info){
