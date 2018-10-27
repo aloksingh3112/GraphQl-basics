@@ -93,10 +93,29 @@ const typeDefs=`
     },
 
     type Mutation{
-      createUser(name:String!,email:String!,age:Int!):User!,
-      createPost(title:String!,body:String!,isPublished:Boolean!,author:ID!):Post!,
-      createComment(text:String!,author:ID!,post:ID!):Comment!
+      createUser(data: createUserInput):User!,
+      createPost(data:createPostInput):Post!,
+      createComment(data:createCommentInput):Comment!
     },
+    input createUserInput{
+       name:String!,
+       email:String!,
+       age:Int
+    },
+
+    input createPostInput{
+        title:String!,
+        body:String!,
+        isPublished:Boolean!,
+        author:ID!
+
+    },
+    input createCommentInput{
+       text:String!,
+       author:ID!,
+       post:ID!
+    }
+    
 
 
     type User{
@@ -196,53 +215,49 @@ const resolvers={
     },
     Mutation:{
         createUser(parent,args,context,info){
-            console.log(args);
-           const useremail=users.some(user=>user.email==args.email);
+            
+           const useremail=users.some(user=>user.email==args.data.email);
+           console.log(useremail);
            if(useremail){
                 throw new Error("email already existed")
            }
            
            const user={
                id:uuidv4(),
-               email:args.email,
-               name:args.name,
-               age:args.age
+              ...args.data
            }
+          
            users.push(user);
            return user;
-        }
-        ,
+        },
+      
+        
         createPost(parent,args,context,info){
             console.log(args.author);
-            const userExis=users.some((user)=>user.id=args.author);
+            const userExis=users.some((user)=>user.id=args.data.author);
              if(!userExis){
                  throw new Error('user not existed')
              }
              const post={
                  id:uuidv4(),
-                 title:args.title,
-                 body:args.body,
-                 isPublished:args.isPublished,
-                 author:args.author
+                 ...args.data
             }
             posts.push(post);
             return post;
         },
 
         createComment(parent,args,context,info){
-            const isUser=users.some((user)=>user.id==args.author);
+            const isUser=users.some((user)=>user.id==args.data.author);
             if(!isUser){
                 throw new Error('user not existed')
             }
-            const isPost=posts.some((post)=>post.id==args.post);
+            const isPost=posts.some((post)=>post.id==args.data.post);
             if(!isPost){
                 throw new Error("post does ot existed")
             }
             const comment={
                 id:uuidv4(),
-                text:args.text,
-                author:args.author,
-                post:args.post
+                ...args.data
             }
             comments.push(comment);
             return comment;
