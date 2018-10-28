@@ -38,6 +38,37 @@ const Mutation={
 
        return deletedUser[0];
     },
+    
+     updateUser(parent,args,{db},info){
+         const user=db.users.find((user)=>user.id==args.id);
+         if(!user){
+             throw new Error("no user exist");
+         }
+
+         if(typeof args.data.email ==="string" ){
+             const emailTaken=db.users.some(user=>user.email==args.data.email);
+             if(emailTaken){
+                 throw new Error("email already taken")
+             }
+             user.email=args.data.email
+             
+         }
+         if(typeof args.data.name==="string"){
+             const nametaken=db.users.some(user=>user.name===args.data.name);
+             if(nametaken){
+                 throw new Error("name already exist");
+             }
+             user.name=args.data.name
+         }
+         if(typeof args.data.age!=undefined){
+             user.age=args.data.age
+         }
+
+         return user;
+
+
+
+     },
   
     
     createPost(parent,args,{db},info){
@@ -65,6 +96,23 @@ const Mutation={
      return deletedPost[0];
 
 
+
+    },
+    updatePost(parent,args,{db},info){
+       const post=db.posts.find((post)=>post.id==args.id);
+       if(!post){
+           throw new Error("no post is there");
+       }
+       if(typeof args.data.title !=undefined){
+           post.title=args.data.title
+       }
+       if(typeof args.data.body !=undefined){
+        post.body=args.data.body
+      }
+      if(typeof args.data.isPublished !=undefined){
+        post.isPublished=args.data.isPublished
+    }
+       return post;
 
     },
 
