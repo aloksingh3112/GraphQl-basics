@@ -71,4 +71,7 @@
        text:String!,
        author:User!,
        post:Post!
+   },
+   type Subscription{
+       count:Int!
    }
