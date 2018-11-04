@@ -116,7 +116,7 @@ const Mutation={
 
     },
 
-    createComment(parent,args,{db},info){
+    createComment(parent,args,{db,pubsub},info){
         const isUser=db.users.some((user)=>user.id==args.data.author);
         if(!isUser){
             throw new Error('user not existed')
@@ -130,6 +130,9 @@ const Mutation={
             ...args.data
         }
         db.comments.push(comment);
+         pubsub.publish(`comment ${args.data.post}`,{
+             comment
+         })
         return comment;
 
     }
