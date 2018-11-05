@@ -31,10 +31,11 @@ const Mutation={
                      return comment.post!=post.id
                 }) 
            }
-           return  !match
+           return !match
        })
 
        db.comments=db.comments.filter((comment)=>comment.author!=args.id);
+     
 
        return deletedUser[0];
     },
@@ -85,27 +86,40 @@ const Mutation={
         db.posts.push(post);
         if(post.isPublished){
             pubsub.publish('post1',{
-                post
+                post:{
+                    mutation:"CREATED",
+                    data:post
+                }
             })
         }
         return post;
     },
 
-    deletePost(parent,args,{db},info){
+    deletePost(parent,args,{db,pubsub},info){
      const findIndex=db.posts.findIndex(post=>post.id==args.id);
      if(findIndex==-1){
          throw new Error("no post exist")
         }
      const deletedPost=db.posts.splice(findIndex,1);
 
-     db.comments=db.comments.filter(comment=>comment.post!==args.id)
+     db.comments=db.comments.filter(comment=>comment.post!==args.id);
+
+     if(deletedPost[0].isPublished){
+        pubsub.publish('post1',{
+            post:{
+                mutation:"DETETED",
+                data:deletedPost[0]
+            }
+        })
+     }
      return deletedPost[0];
 
 
 
     },
-    updatePost(parent,args,{db},info){
+    updatePost(parent,args,{db,pubsub},info){
        const post=db.posts.find((post)=>post.id==args.id);
+       const originalPost={...post};
        if(!post){
            throw new Error("no post is there");
        }
@@ -117,6 +131,30 @@ const Mutation={
       }
       if(typeof args.data.isPublished !=undefined){
         post.isPublished=args.data.isPublished
+        if(originalPost.isPublished && !post.isPublished){
+            pubsub.publish('post1',{
+                post:{
+                    mutation:"DELETED",
+                    data:originalPost
+                }
+            })
+        }
+        else if(!originalPost.isPublished && post.isPublished){
+           pubsub.publish('post1',{
+               post:{
+                   mutation:"CREATED",
+                   data:post
+               }
+           })    
+        }
+        else if(post.isPublished){
+            pubsub.publish('post1',{
+                post:{
+                    mutation:"UPDATED",
+                    data:post
+                }
+            })
+        }
     }
        return post;
 
@@ -137,7 +175,10 @@ const Mutation={
         }
         db.comments.push(comment);
          pubsub.publish(`comment ${args.data.post}`,{
-             comment
+             comment:{
+                 mutation:"CREATED",
+                 data:comment
+             }
          })
         return comment;
 
